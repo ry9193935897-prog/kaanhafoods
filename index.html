@@ -1,0 +1,231 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f97316">
+<title>Kaanhafoods | Order Online</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#fff8f0;color:#292018}
+header{background:#f97316;color:white;text-align:center;padding:24px 12px}
+header h1{margin:0;font-size:32px}
+header p{margin:8px 0}
+main{max-width:850px;margin:auto;padding:15px}
+.notice{background:#fff0d9;padding:12px;border-radius:10px;font-size:14px}
+h2{color:#d94c00;border-bottom:2px solid #ffd2ad;padding-bottom:7px}
+.menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}
+.item{background:white;border:1px solid #f3ddca;border-radius:12px;padding:13px}
+.item h3{font-size:16px;margin:0 0 8px}
+.price{font-weight:bold;color:#d94c00;margin-bottom:10px}
+button{background:#f97316;color:white;border:0;padding:10px 12px;border-radius:8px;font-weight:bold;cursor:pointer}
+button:active{opacity:.8}
+.cart{background:white;border:1px solid #f3ddca;border-radius:12px;padding:15px;margin-top:24px}
+.cartrow{display:flex;justify-content:space-between;gap:8px;align-items:center;border-bottom:1px solid #eee;padding:10px 0}
+.smallbtn{padding:5px 9px}
+.total{font-size:20px;font-weight:bold;margin:14px 0}
+input,textarea{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;margin:6px 0 12px;font:inherit}
+.orderbtn{width:100%;background:#168548;padding:14px;font-size:16px}
+footer{text-align:center;padding:20px;color:#705d4e}
+</style>
+</head>
+<body>
+<header>
+<h1>🍕 Kaanhafoods</h1>
+<p>Fresh Food • Great Taste • Happy Moments</p>
+<p>📍 Patepur near Sainik Dhaba</p>
+</header>
+
+<main>
+<div class="notice">
+<strong>Takeaway Orders</strong><br>
+Choose your food, add it to your cart and order directly on WhatsApp.
+</div>
+
+<div id="menu"></div>
+
+<section class="cart">
+<h2>🛒 Your Cart</h2>
+<div id="cartItems">Your cart is empty.</div>
+<div class="total">Total: ₹<span id="total">0</span></div>
+<p>Advance (50%): ₹<span id="advance">0</span></p>
+<p>Remaining at pickup (50%): ₹<span id="remaining">0</span></p>
+<p class="notice">Online payment is not connected yet. Confirm advance payment instructions with the restaurant on WhatsApp.</p>
+
+<label for="customer">Your Name</label>
+<input id="customer" placeholder="Enter your name">
+
+<label for="phone">Your Phone Number</label>
+<input id="phone" type="tel" placeholder="Enter your phone number">
+
+<label for="notes">Special Instructions</label>
+<textarea id="notes" rows="2" placeholder="Any special request? (optional)"></textarea>
+
+<button class="orderbtn" onclick="placeOrder()">Order on WhatsApp</button>
+</section>
+</main>
+
+<footer>Thank you for choosing Kaanhafoods ❤️</footer>
+
+<script>
+const menuData = [
+["Burgers",[
+["Veg Burger",25],["Paneer Burger",35],["Tandoori Burger",35],
+["Makhani Burger",35],["Cheese Burger",50],["Paneer Cheese Burger",60]]],
+["Patties",[
+["Veg Patties",20],["Paneer Patties",35],
+["Makhani Patties",35],["Tandoori Patties",35]]],
+["Sandwich",[
+["Veg Sandwich",35]]],
+["Pasta",[
+["Dry Pasta (Half)",40],["Dry Pasta (Full)",70],
+["White Sauce Pasta (Half)",50],["White Sauce Pasta (Full)",80],
+["Red Sauce Pasta (Half)",40],["Red Sauce Pasta (Full)",70]]],
+["Noodles",[
+["Chow Mein (Half)",25],["Chow Mein (Full)",50],
+["Hakka Noodles (Half)",40],["Hakka Noodles (Full)",70]]],
+["Momo",[
+["Steam Momo (Half)",25],["Steam Momo (Full)",50],
+["Fry Momo (Half)",25],["Fry Momo (Full)",50]]],
+["French Fries",[
+["French Fries (Half)",40],["French Fries (Full)",70],
+["Finger Fries (Half)",25],["Finger Fries (Full)",50]]],
+["Manchurian",[
+["Manchurian (Half)",40],["Manchurian (Full)",70]]],
+["Rolls",[
+["Spring Roll",25]]],
+["Chilli",[
+["Chilli Potato (Half)",40],["Chilli Potato (Full)",70],
+["Honey Chilli Potato (Half)",50],["Honey Chilli Potato (Full)",80],
+["Chilli Paneer (Half)",50],["Chilli Paneer (Full)",80]]],
+["Regular Pizza",[
+["Bread Pizza (Small)",35],
+["Tomato Pizza (Small)",49],["Tomato Pizza (Medium)",99],
+["Onion Pizza (Small)",49],["Onion Pizza (Medium)",99],
+["Cone Pizza (Small)",49],["Cone Pizza (Medium)",99],
+["Capsicum Pizza (Small)",49],["Capsicum Pizza (Medium)",99]]],
+["Medium Pizza",[
+["Mix Pizza (Small)",89],["Mix Pizza (Medium)",139],
+["Mushroom Pizza (Small)",99],["Mushroom Pizza (Medium)",159],
+["Classic Pizza (Small)",99],["Classic Pizza (Medium)",159],
+["Margherita Pizza (Small)",109],["Margherita Pizza (Medium)",179]]],
+["Premium Pizza",[
+["Extra Veg Pizza (Small)",159],["Extra Veg Pizza (Medium)",259],
+["Tandoori Pizza (Small)",159],["Tandoori Pizza (Medium)",259],
+["Makhani Pizza (Small)",159],["Makhani Pizza (Medium)",259],
+["Farm House Pizza (Small)",179],["Farm House Pizza (Medium)",309],
+["All in One Pizza (Small)",179],["All in One Pizza (Medium)",309]]]
+];
+
+const cart = {};
+
+function renderMenu(){
+ const root=document.getElementById("menu");
+ menuData.forEach(([category,items])=>{
+  const section=document.createElement("section");
+  const heading=document.createElement("h2");
+  heading.textContent=category;
+  section.appendChild(heading);
+  const grid=document.createElement("div");
+  grid.className="menu";
+  items.forEach(([name,price])=>{
+   const card=document.createElement("div");
+   card.className="item";
+   const title=document.createElement("h3");
+   title.textContent=name;
+   const cost=document.createElement("div");
+   cost.className="price";
+   cost.textContent="₹"+price;
+   const btn=document.createElement("button");
+   btn.textContent="Add +";
+   btn.onclick=()=>addItem(name,price);
+   card.append(title,cost,btn);
+   grid.appendChild(card);
+  });
+  section.appendChild(grid);
+  root.appendChild(section);
+ });
+}
+
+function addItem(name,price){
+ if(!cart[name])cart[name]={price,qty:0};
+ cart[name].qty++;
+ renderCart();
+}
+
+function changeQty(name,change){
+ cart[name].qty+=change;
+ if(cart[name].qty<=0)delete cart[name];
+ renderCart();
+}
+
+function renderCart(){
+ const root=document.getElementById("cartItems");
+ root.replaceChildren();
+ const names=Object.keys(cart);
+ if(!names.length){
+  root.textContent="Your cart is empty.";
+ }
+ let total=0;
+ names.forEach(name=>{
+  const item=cart[name];
+  total+=item.price*item.qty;
+  const row=document.createElement("div");
+  row.className="cartrow";
+  const label=document.createElement("span");
+  label.textContent=name+" × "+item.qty+" = ₹"+item.price*item.qty;
+  const controls=document.createElement("span");
+  const minus=document.createElement("button");
+  minus.className="smallbtn";
+  minus.textContent="−";
+  minus.onclick=()=>changeQty(name,-1);
+  const plus=document.createElement("button");
+  plus.className="smallbtn";
+  plus.textContent="+";
+  plus.onclick=()=>changeQty(name,1);
+  controls.append(minus,document.createTextNode(" "),plus);
+  row.append(label,controls);
+  root.appendChild(row);
+ });
+ document.getElementById("total").textContent=total;
+ document.getElementById("advance").textContent=(total/2).toFixed(2);
+ document.getElementById("remaining").textContent=(total/2).toFixed(2);
+}
+
+function placeOrder(){
+ const names=Object.keys(cart);
+ if(!names.length){
+  alert("Please add food to your cart first.");
+  return;
+ }
+ const customer=document.getElementById("customer").value.trim();
+ const phone=document.getElementById("phone").value.trim();
+ if(!customer||!phone){
+  alert("Please enter your name and phone number.");
+  return;
+ }
+ let total=0;
+ let message="*Kaanhafoods Takeaway Order*%0A";
+ message+="Name: "+encodeURIComponent(customer)+"%0A";
+ message+="Phone: "+encodeURIComponent(phone)+"%0A%0A";
+ names.forEach(name=>{
+  const item=cart[name];
+  total+=item.price*item.qty;
+  message+=encodeURIComponent(name+" x "+item.qty+" = ₹"+item.price*item.qty)+"%0A";
+ });
+ const notes=document.getElementById("notes").value.trim();
+ message+="%0A"+encodeURIComponent("Total: ₹"+total);
+ message+="%0A"+encodeURIComponent("Estimated 50% advance: ₹"+(total/2).toFixed(2));
+ message+="%0A"+encodeURIComponent("Remaining at pickup: ₹"+(total/2).toFixed(2));
+ message+="%0A"+encodeURIComponent("Pickup: Patepur near Sainik Dhaba");
+ message+="%0A%0A"+encodeURIComponent("Please confirm availability and advance payment instructions.");
+ if(notes)message+="%0A"+encodeURIComponent("Instructions: "+notes);
+ window.open("https://wa.me/918267935897?text="+message,"_blank");
+}
+
+renderMenu();
+</script>
+</body>
+  </html>
+  
